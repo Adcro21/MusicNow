@@ -1,0 +1,97 @@
+﻿@{
+    ViewBag.Title = "Thanh Toán";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Lấy thông tin từ Controller
+    string packageName = ViewBag.PackageName ?? "Gói";
+    long amount = ViewBag.Amount ?? 40000;
+    string paymentContent = ViewBag.PaymentContent ?? "UPGRADE";
+    string type = ViewBag.Type ?? "Premium";
+
+    // === THAY THÔNG TIN CỦA BẠN VÀO ĐÂY ===
+    string bankId = "970436";    // 970422 = MB Bank. (Tra mã BIN ngân hàng của bạn)
+    string accountNo = "2845442281"; // Thay STK của bạn
+    string accountName = "NGUYEN PHUOC HIEN";
+                                        
+
+    string qrUrl = $"https://img.vietqr.io/image/{bankId}-{accountNo}-qr_only.png?amount={amount}&addInfo={paymentContent}&accountName={accountName}";
+}
+
+@section styles {
+    <style>
+        .payment-container {
+            max-width: 500px;
+            margin: 50px auto;
+            background-color: #1E1E1E;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .qr-code-img {
+            width: 300px;
+            height: 300px;
+            border-radius: 8px;
+            border: 2px solid #1DB954;
+        }
+
+        .payment-amount {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #1DB954;
+            margin: 10px 0;
+        }
+
+        .payment-content {
+            background-color: #333;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            color: #fff;
+            display: inline-block;
+        }
+
+        .spinner-border {
+            color: #1DB954;
+        }
+    </style>
+}
+
+<div class="payment-container">
+    <h2 class="text-light">Thanh toán cho: @packageName</h2>
+    <p class="text-muted">Quét mã QR bằng ứng dụng ngân hàng của bạn</p>
+
+    <img src="@qrUrl" alt="Mã QR Thanh Toán" class="qr-code-img" />
+
+    <h3 class="payment-amount">@amount.ToString("N0") VND</h3>
+
+    <p class="text-light">Nội dung chuyển khoản (Bắt buộc):</p>
+    <p class="payment-content">@paymentContent</p>
+
+    <hr style="border-color: #444;" />
+
+    <div class="mt-4">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="text-light mt-2" id="status-message">
+            Đang chờ xác nhận thanh toán... 
+        </p>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            // Sau 10 giây (10000 ms), tự động chuyển hướng
+            setTimeout(function () {
+
+                $('#status-message').text('Thanh toán thành công! Đang xử lý nâng cấp...');
+
+                // Chuyển hướng đến Action ProcessPayment
+                window.location.href = '@Url.Action("ProcessPayment", "Payment", new { type = type })';
+
+            }, 10000); // 10 giây
+        });
+    </script>
+}

@@ -1,0 +1,171 @@
+﻿@model MUSICNOW.Core.ViewModels.ArtistDetailViewModel
+@{
+    ViewBag.Title = Model.ArtistInfo.Username;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section styles {
+    <style>
+        .user-header-card {
+            background: linear-gradient(135deg, #181818 0%, #3a3a3a 100%);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            padding: 40px;
+        }
+
+        .avatar-display {
+            position: relative;
+            flex-shrink: 0;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 4px solid #1DB954;
+            box-shadow: 0 0 0 5px rgba(29, 185, 84, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .profile-avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-role-label {
+            color: #b3b3b3;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .user-username-display {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 0.1rem;
+            color: #ffffff;
+        }
+
+        .list-item-hover {
+            transition: background-color 0.2s ease;
+        }
+
+            .list-item-hover:hover {
+                background-color: #2a2a2a !important;
+            }
+
+        .btn-play-small-list {
+            background: none;
+            border: 1px solid #b3b3b3;
+            color: #fff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 0.8rem;
+            line-height: 1;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: all 0.2s ease;
+        }
+
+        .list-item-hover:hover .btn-play-small-list {
+            opacity: 1;
+        }
+
+        .btn-play-small-list:hover {
+            border-color: #1DB954;
+            color: #1DB954;
+            transform: scale(1.1);
+        }
+
+        .cover-art-thumb {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 15px;
+        }
+    </style>
+}
+
+<div class="container-fluid content-container mt-4">
+
+    @* 1. HEADER (Giống Profile.cshtml) *@
+    <div class="user-header-card p-4 mb-5">
+        <div class="d-flex align-items-end">
+            <div class="avatar-display me-4">
+                <img src="@Url.Content(Model.ArtistInfo.AvatarUrl ?? "~/Content/image/avt.png")"
+                     alt="Avatar" class="profile-avatar-img" />
+            </div>
+            <div>
+                <span class="user-role-label">@Model.ArtistInfo.Role</span>
+                <h1 class="user-username-display">@Model.ArtistInfo.Username</h1>
+            </div>
+        </div>
+    </div>
+
+    @* 2. DANH SÁCH BÀI HÁT *@
+    <h3 class="h5">Bài hát của @Model.ArtistInfo.Username</h3>
+    <ul class="list-group list-group-flush mt-4" style="background-color: transparent;">
+        @if (Model.Tracks != null && Model.Tracks.Any())
+        {
+            foreach (var track in Model.Tracks)
+            {
+                <li class="list-group-item d-flex align-items-center list-item-hover" style="background-color: transparent;
+                    border: none; padding: 8px 0;">
+                    <img src="@Url.Content(track.CoverArtUrl ?? "~/Content/image/music_placeholder.png")" alt="@track.Title" class="cover-art-thumb">
+                    <span class="flex-grow-1 text-truncate">@track.Title - <span style="color: #b3b3b3;">@track.SingerName</span></span>
+                    <button class="btn btn-play-small-list"
+                            data-filepath="@track.FilePath"
+                            data-musicid="@track.MusicID"
+                            data-title="@track.Title"
+                            data-artist="@track.SingerName"
+                            onclick="playTrackList(this)">
+                        @* <-- Sửa tên hàm *@
+                        ▶️
+                    </button>
+                </li>
+            }
+        }
+        else
+        {
+            <p class="text-muted">Nghệ sĩ này chưa tải lên bài hát nào.</p>
+        }
+    </ul>
+</div>
+
+@* === SỬA TOÀN BỘ LOGIC SCRIPT === *@
+@section scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // Hàm này (playTrackList) sẽ xây dựng hàng đợi cho list nhạc
+            window.playTrackList = function (buttonElement) {
+                var container = $(buttonElement).closest('ul');
+                var allPlayButtons = container.find('.btn-play-small-list');
+                var queue = [];
+                var startIndex = 0;
+
+                allPlayButtons.each(function (index, btn) {
+                    var track = {
+                        filePath: $(btn).data('filepath'),
+                        musicId: $(btn).data('musicid'),
+                        title: $(btn).data('title'),
+                        artist: $(btn).data('artist'),
+                        coverArtUrl: $(btn).siblings('img').attr('src')
+                    };
+                    queue.push(track);
+                    if (btn === buttonElement) {
+                        startIndex = index;
+                    }
+                });
+                window.startQueue(queue, startIndex);
+            }
+
+        });
+    </script>
+}

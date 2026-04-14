@@ -1,0 +1,75 @@
+﻿@{
+    bool canUpload = (bool)(ViewData["CanUpload"] ?? false);
+    bool canCreatePlaylist = (bool)(ViewData["CanCreatePlaylist"] ?? false);
+    string activePage = ViewBag.ActivePage as string ?? "";
+}
+
+<aside id="sidebar">
+    <div class="menu-section">
+
+        @* KHU VỰC NỔI BẬT (Giữ nguyên) *@
+
+        <ul class="menu">
+            <li><a href="~/" class="menu-link @(activePage == "NoiBat" ? "active" : "")">🔥 Nổi bật</a></li>
+            <li><a href="@Url.Action("ForYou", "Music")" class="menu-link @(activePage == "DanhChoBan" ? "active" : "")">🎁 Dành cho bạn</a></li>
+            <li><a href="@Url.Action("MyMusic", "Music")" class="menu-link @(activePage == "NhacCuaBan" ? "active" : "")">🎵 Nhạc của bạn</a></li>
+        </ul>
+
+        @* KHU VỰC THƯ VIỆN (ĐÃ SỬA) *@
+        @if (User.Identity.IsAuthenticated)
+        {
+            <h6 class="sidebar-heading">THƯ VIỆN</h6>
+            <ul class="menu">
+                <li>
+                    <a href="@Url.Action("LikedSongs", "Music")"
+                       class="menu-link @(activePage == "YeuThich" ? "active" : "")">
+                        ❤️ Yêu thích
+                    </a>
+                </li>
+
+                @if (canCreatePlaylist)
+                {
+                    <li>
+                        <a href="@Url.Action("Create", "Playlist")"
+                           class="menu-link @(activePage == "CreatePlaylist" ? "active" : "")">
+                            + Tạo Playlist
+                        </a>
+                    </li>
+                }
+
+                @if (ViewBag.UserPlaylists != null)
+                {
+                    foreach (var playlist in (List<MUSICNOW.Core.Entities.Playlist>)ViewBag.UserPlaylists)
+                    {
+                        <li>
+                            <a href="@Url.Action("Details", "Playlist", new { id = playlist.PlaylistID })"
+                               class="menu-link menu-link-with-art @(ViewBag.ActivePlaylistId == playlist.PlaylistID ? "active" : "")">
+
+                                <img src="@Url.Content(playlist.CoverArtUrl ?? "~/Content/image/music_placeholder.png")"
+                                     class="sidebar-playlist-art" alt="PL" />
+
+                                <span class="sidebar-playlist-name">@playlist.Name</span>
+                            </a>
+                        </li>
+                    }
+                }
+                @if (canUpload)
+                {
+                    <li>
+                        <a href="@Url.Action("Upload", "Music")"
+                           class="menu-link @(activePage == "UploadMusic" ? "active" : "")">
+                            ⬆️ Tải nhạc lên
+                        </a>
+                    </li>
+                }
+            </ul>
+        }
+        else // Khi chưa đăng nhập (Giữ nguyên)
+        {
+            <div class="login-section">
+                <p>Đăng nhập để xem danh sách Yêu thích và Tải nhạc lên.</p>
+                <a href="@Url.Action("Login", "Account")" class="login-button">Đăng nhập</a>
+            </div>
+        }
+    </div>
+</aside>

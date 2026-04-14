@@ -1,0 +1,81 @@
+﻿@model MUSICNOW.Core.ViewModels.EditPlaylistViewModel
+
+@{
+    ViewBag.Title = "Chỉnh Sửa Playlist";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section styles {
+    <style>
+        .profile-container {
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .dark-card {
+            background-color: #1E1E1E;
+            border: none;
+            border-radius: 10px;
+        }
+
+        .card-title-premium {
+            color: #FFC107;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .dark-input {
+            background-color: #4a4a4a !important;
+            border: 1px solid #666 !important;
+            color: #fff !important;
+        }
+
+        .current-cover-art {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+    </style>
+}
+
+<div class="profile-container mt-4">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card p-4 dark-card">
+                <h2 class="card-title-premium">Chỉnh Sửa Playlist: @Model.Name</h2>
+                <hr style="border-color: #444;" />
+
+                @using (Html.BeginForm("Edit", "Playlist", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                    @Html.HiddenFor(m => m.PlaylistID)
+                    @Html.HiddenFor(m => m.ExistingCoverArtUrl)
+
+                    <div class="form-group mb-3">
+                        @Html.LabelFor(m => m.Name, new { @class = "form-label" })
+                        @Html.TextBoxFor(m => m.Name, new { @class = "form-control dark-input" })
+                        @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="form-group mb-4">
+                        @Html.LabelFor(m => m.CoverArtFile, new { @class = "form-label" })
+                        <br />
+                        <img src="@Url.Content(Model.ExistingCoverArtUrl ?? "~/Content/image/music_placeholder.png")"
+                             alt="Ảnh bìa hiện tại"
+                             class="current-cover-art" />
+                        <br />
+                        <input type="file" name="CoverArtFile" id="CoverArtFile" class="form-control dark-input" accept=".jpg,.jpeg,.png" />
+                    </div>
+
+                    <button type="submit" class="btn btn-lg btn-warning w-100">
+                        Lưu Thay Đổi
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+</div>

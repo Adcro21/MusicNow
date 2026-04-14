@@ -1,0 +1,254 @@
+﻿@model MUSICNOW.Core.ViewModels.RegisterViewModel
+@{
+    // <<< ĐẶT LAYOUT = NULL (Đồng bộ với Login) >>>
+    Layout = null;
+    ViewBag.Title = "Đăng Ký";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>@ViewBag.Title - MusicNow</title>
+
+    @* LẤY FONT VÀ CSS CHUNG *@
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Krub:wght@600;700;800&display=swap" rel="stylesheet">
+    <script src="~/Scripts/jquery-3.7.0.min.js"></script>
+    <script src="~/Scripts/jquery.validate.min.js"></script>
+    <script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>
+
+    @* === CSS CHO GIAO DIỆN "ÂM NHẠC TƯƠNG LAI" (ĐÃ CÂN BẰNG) === *@
+    <style>
+        body {
+            font-family: 'Krub', sans-serif;
+            background-color: #080808;
+            background-image: radial-gradient(circle at 20% 20%, #0f0f1a, #080808 70%);
+            background-attachment: fixed;
+            color: #fff;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center; /* Căn giữa dọc */
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+            /* Hiệu ứng ánh sáng di chuyển (Giữ nguyên) */
+            body::before {
+                content: "";
+                position: absolute;
+                width: 600px;
+                height: 600px;
+                background: radial-gradient(circle, rgba(0,255,170,0.18), rgba(155,0,255,0.1));
+                filter: blur(120px);
+                animation: moveGlow 10s infinite alternate ease-in-out;
+                z-index: 0;
+            }
+
+        @@keyframes moveGlow {
+            0% {
+                top: 10%;
+                left: 15%;
+                transform: rotate(0deg);
+            }
+
+            50% {
+                top: 60%;
+                left: 65%;
+                transform: rotate(180deg);
+            }
+
+            100% {
+                top: 10%;
+                left: 15%;
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Hộp đăng ký (ĐỒNG BỘ WIDTH VỚI LOGIN) */
+        .login-box {
+            width: 450px; /* ĐỒNG BỘ: Chiều rộng 450px */
+            padding: 40px;
+            margin: 2rem 0; /* Khoảng cách cho form dài */
+            background: rgba(20, 20, 30, 0.85);
+            border-radius: 16px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 30px rgba(0, 255, 200, 0.2);
+            position: relative;
+            z-index: 10;
+            text-align: center;
+        }
+
+            /* Viền chuyển màu liên tục (Giữ nguyên) */
+            .login-box::before {
+                content: "";
+                position: absolute;
+                top: -2px;
+                left: -2px;
+                right: -2px;
+                bottom: -2px;
+                background: linear-gradient(120deg, #00f5ff, #a100ff, #00ff85);
+                background-size: 300% 300%;
+                animation: borderFlow 6s infinite linear;
+                z-index: 0;
+                border-radius: 16px;
+                opacity: 0.4;
+            }
+
+        @@keyframes borderFlow {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            100% {
+                background-position: 100% 50%;
+            }
+        }
+
+        .login-box * {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Tiêu đề chính */
+        .login-box h2 {
+            font-weight: 900;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, #00f5ff, #ff00d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 15px rgba(0,255,255,0.3);
+            margin-bottom: 3rem;
+        }
+
+        /* Label (ĐỒNG BỘ WIDTH VÀ CĂN TRÁI) */
+        .control-label {
+            display: block;
+            margin: 0 auto 0.5rem auto;
+            width: 90%;
+            color: #b3b3b3;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-align: left;
+        }
+
+        /* Input Custom */
+        .dark-input {
+            width: 90% !important; /* ĐỒNG BỘ: Chiều rộng 90% */
+            display: block !important;
+            margin: 0.5rem auto 0 auto !important; /* CĂN GIỮA INPUT */
+            background-color: rgba(30, 30, 40, 0.8) !important;
+            border: 1px solid rgba(0, 255, 200, 0.3) !important;
+            color: #fff !important;
+            border-radius: 8px;
+            padding: 16px 18px;
+            height: auto;
+        }
+
+            .dark-input:focus {
+                border-color: #1ed760 !important;
+                box-shadow: 0 0 10px rgba(29, 185, 84, 0.5) !important;
+            }
+
+        /* Nút Submit */
+        .btn-login-submit {
+            background-color: #1DB954;
+            color: #000;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: none;
+            width: 90%; /* ĐỒNG BỘ: Chiều rộng 90% */
+            padding: 18px;
+            border-radius: 50px;
+            box-shadow: 0 0 30px rgba(29, 185, 84, 0.5);
+            transition: all 0.3s ease;
+            margin-top: 2rem;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+            .btn-login-submit:hover {
+                background-color: #1ed760;
+                transform: scale(1.03);
+                box-shadow: 0 0 40px rgba(29, 185, 84, 0.8);
+            }
+
+        /* Link */
+        .link-subtle {
+            color: #00f5ff;
+            text-decoration: none;
+        }
+
+            .link-subtle:hover {
+                color: #ff00d4;
+                text-decoration: underline;
+            }
+
+        .text-error {
+            color: #ff4d4d;
+        }
+
+        /* Form Group */
+        .form-group {
+            /* Căn giữa Label và Input */
+            width: 100%;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    @* === BẮT ĐẦU NỘI DUNG === *@
+    <div class="login-box">
+        <h2 class="text-center">Tạo Tài Khoản</h2>
+
+        @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { role = "form" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary("", new { @class = "text-error small mb-3" })
+
+            <div class="form-group mb-4">
+                @Html.LabelFor(m => m.Username, new { @class = "control-label mb-1" })
+                @Html.TextBoxFor(m => m.Username, new { @class = "form-control dark-input", placeholder = "Tên của bạn" })
+                @Html.ValidationMessageFor(m => m.Username, "", new { @class = "text-error small" })
+            </div>
+
+            <div class="form-group mb-4">
+                @Html.LabelFor(m => m.Email, new { @class = "control-label mb-1" })
+                @Html.TextBoxFor(m => m.Email, new { @class = "form-control dark-input", placeholder = "Nhập email" })
+                @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-error small" })
+            </div>
+
+            <div class="form-group mb-4">
+                @Html.LabelFor(m => m.Password, new { @class = "control-label mb-1" })
+                @Html.PasswordFor(m => m.Password, new { @class = "form-control dark-input", placeholder = "Nhập mật khẩu" })
+                @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-error small" })
+            </div>
+
+            <div class="form-group mb-5">
+                @Html.LabelFor(m => m.ConfirmPassword, new { @class = "control-label mb-1" })
+                @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control dark-input", placeholder = "Xác nhận mật khẩu" })
+                @Html.ValidationMessageFor(m => m.ConfirmPassword, "", new { @class = "text-error small" })
+            </div>
+
+            <div class="form-group mb-4">
+                <input type="submit" value="ĐĂNG KÝ" class="btn btn-login-submit" />
+            </div>
+
+            <p class="text-center small mt-4">
+                @Html.ActionLink("Đã có tài khoản? Đăng nhập", "Login", null, new { @class = "link-subtle" })
+            </p>
+        }
+    </div>
+
+    @* TẢI CÁC THƯ VIỆN SCRIPT CẦN THIẾT *@
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/jqueryval")
+</body>
+</html>

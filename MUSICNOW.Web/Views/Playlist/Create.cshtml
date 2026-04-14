@@ -1,0 +1,63 @@
+﻿@model MUSICNOW.Core.ViewModels.CreatePlaylistViewModel
+@{
+    ViewBag.Title = "Tạo Playlist Mới";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@* (Dùng lại CSS của trang Upload) *@
+@section styles {
+    <style>
+        .profile-container {
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .dark-card {
+            background-color: #1E1E1E;
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            height: 100%;
+        }
+
+        .card-title-premium {
+            color: #1DB954;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .dark-input {
+            background-color: #4a4a4a !important;
+            border: 1px solid #666 !important;
+            color: #fff !important;
+        }
+    </style>
+}
+
+<div class="profile-container mt-4">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card p-4 dark-card">
+                <h2 class="card-title-premium">+ Tạo Playlist Mới</h2>
+                <hr style="border-color: #444;" />
+
+                @using (Html.BeginForm("Create", "Playlist", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                    <div class="form-group mb-3">
+                        @Html.LabelFor(m => m.Name, new { @class = "form-label" })
+                        @Html.TextBoxFor(m => m.Name, new { @class = "form-control dark-input", placeholder = "Ví dụ: Nhạc chill..." })
+                        @Html.ValidationMessageFor(m => m.Name, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <button type="submit" class="btn btn-lg btn-success w-100">
+                        Tạo Playlist
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+</div>

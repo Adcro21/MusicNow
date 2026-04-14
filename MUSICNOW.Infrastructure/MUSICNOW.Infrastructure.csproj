@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net472</TargetFramework>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="EntityFramework" Version="6.5.1" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\MUSICNOW.Core\MUSICNOW.Core.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+		<Reference Include="System" />
+		<Reference Include="System.Configuration" />
+		<Reference Include="System.Core" />
+		<Reference Include="System.Data" />
+		<Reference Include="Microsoft.CSharp" />
+		<Reference Include="System.Web" />
+	</ItemGroup>
+</Project>

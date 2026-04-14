@@ -1,0 +1,360 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - MUSICNOW</title>
+
+    @* Gọi thư viện Bootstrap và CSS Tùy chỉnh *@
+    @Styles.Render("~/Content/css")
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+    @Scripts.Render("~/bundles/modernizr")
+    @RenderSection("styles", required: false)
+
+</head>
+<body>
+
+    @* 1. HEADER *@
+    @Html.Partial("_Header")
+
+    <div id="main-wrapper">
+
+        @* 2. SIDEBAR *@
+        @Html.Partial("_Sidebar")
+
+        @* 3. NỘI DUNG CHÍNH *@
+        <main role="main">
+            @RenderBody()
+        </main>
+
+    </div>
+
+    @* 4. PLAYER SẼ ĐƯỢC GỌI VÀ ĐẶT CỐ ĐỊNH Ở DƯỚI CÙNG *@
+    @Html.Partial("_MusicPlayer")
+
+    @* === MINIGAME AD OVERLAY === *@
+    <div id="minigame-overlay">
+        <div class="game-instructions">
+            <h2 style="color: #fff;">Hãy bắn trúng mục tiêu!</h2>
+            <p style="color: #b3b3b3;">Bắn trúng mục tiêu để tiếp tục nghe nhạc.</p>
+        </div>
+        <div id="game-container">
+            <iframe id="game-iframe" src="about:blank"></iframe>
+        </div>
+    </div>
+
+
+    @Scripts.Render("~/bundles/jquery")
+    <script src="~/Scripts/bootstrap.bundle.min.js"></script>
+
+    @* === "BỘ NÃO PLAYER" === *@
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // === 1. BIẾN TOÀN CỤC ===
+            var globalPlayer = document.getElementById('audio-player-fixed');
+            var globalQueue = [];
+            var globalCurrentIndex = -1;
+            var globalRepeatMode = 'none';
+            var songToPlayAfterAd = null;
+            var indexToPlayAfterAd = -1;
+
+            // === 2. LẤY CÁC NÚT ĐIỀU KHIỂN ===
+            var playerCover = document.getElementById('player-cover-art');
+            var playerTitle = document.getElementById('player-title');
+            var playerArtist = document.getElementById('player-artist');
+            var playerLikeBtn = document.getElementById('player-like-btn');
+            var playerPlayBtn = document.getElementById('player-play-btn');
+            var playerPlayIcon = playerPlayBtn.querySelector('i');
+            var playerNextBtn = document.getElementById('player-next-btn');
+            var playerPrevBtn = document.getElementById('player-prev-btn');
+            var playerRepeatBtn = document.getElementById('player-repeat-btn');
+            var progressSlider = document.getElementById('player-progress-slider');
+            var currentTimeLabel = document.getElementById('player-current-time');
+            var durationLabel = document.getElementById('player-duration');
+            var volumeBtn = document.getElementById('player-volume-btn');
+            var volumeIcon = volumeBtn.querySelector('i');
+            var volumeSlider = document.getElementById('player-volume-slider');
+            var lastVolume = 1;
+            var playerPlaylistBtn = document.getElementById('player-playlist-btn');
+
+            // (Biến cho Game Overlay)
+            var gameOverlay = document.getElementById('minigame-overlay');
+            var gameIframe = document.getElementById('game-iframe');
+
+
+            // === 3. HÀM CORE (ĐỊNH NGHĨA HÀM TOÀN CỤC) ===
+            window.startQueue = function (tracksArray, startIndex) {
+                if (!tracksArray || tracksArray.length === 0) return;
+                globalQueue = tracksArray;
+                playTrackAtIndex(startIndex);
+            };
+
+            // === HÀM PLAYTRACK VỚI LOGIC QUẢNG CÁO (ĐÃ SỬA) ===
+            function playTrackAtIndex(index) {
+                if (index < 0 || index >= globalQueue.length) {
+                    playerPlayIcon.classList.remove('fa-pause');
+                    playerPlayIcon.classList.add('fa-play');
+                    return;
+                }
+
+                var trackToPlay = globalQueue[index];
+
+                // --- [FIX] KHAI BÁO BIẾN TỪ SERVER ---
+                var userRole = "@ViewBag.UserRole";
+
+                // Chuyển đổi giá trị C# sang JavaScript (true/false)
+                var isUserPremium = @((ViewBag.IsUserPremium ?? false).ToString().ToLower());
+
+                var chance = Math.random();
+
+                // --- [FIX] LOGIC KIỂM TRA QUẢNG CÁO ---
+                // Chỉ hiện quảng cáo nếu: Role là GeneralUser VÀ Chưa mua Premium VÀ Random trúng
+                if (userRole === "GeneralUser" && isUserPremium === false && chance < 1.0) {
+                    songToPlayAfterAd = trackToPlay;
+                    indexToPlayAfterAd = index;
+                    globalPlayer.pause();
+                    showMiniGame();
+                    return; // Dừng lại, không phát nhạc
+                }
+
+                // Nếu không dính quảng cáo, phát nhạc bình thường:
+                globalCurrentIndex = index;
+                globalPlayer.src = trackToPlay.filePath;
+                globalPlayer.play();
+                updatePlayerUI(trackToPlay);
+                document.dispatchEvent(new CustomEvent('trackchanged', { detail: { index: index, track: trackToPlay } }));
+
+                if (trackToPlay.musicId) {
+                    $.post("/Music/IncrementViewCount/" + trackToPlay.musicId);
+                }
+            }
+
+            function updatePlayerUI(track) {
+                playerCover.src = track.coverArtUrl || '/Content/image/music_placeholder.png';
+                playerTitle.textContent = track.title;
+                playerArtist.textContent = track.artist;
+                checkLikeStatus(track.musicId);
+            }
+
+            // === 4. GẮN CÁC SỰ KIỆN ===
+            window.togglePlayPause = function () {
+                if (globalPlayer.src) {
+                    if (globalPlayer.paused) globalPlayer.play();
+                    else globalPlayer.pause();
+                } else if (globalQueue.length > 0) {
+                    playTrackAtIndex(0);
+                }
+            }
+            playerPlayBtn.addEventListener('click', window.togglePlayPause);
+
+            window.playNext = function () { playTrackAtIndex(globalCurrentIndex + 1); }
+            playerNextBtn.addEventListener('click', window.playNext);
+
+            window.playPrev = function () {
+                if (globalPlayer.currentTime > 3) globalPlayer.currentTime = 0;
+                else playTrackAtIndex(globalCurrentIndex - 1);
+            }
+            playerPrevBtn.addEventListener('click', window.playPrev);
+
+            playerRepeatBtn.addEventListener('click', toggleRepeat);
+            function toggleRepeat() {
+                if (globalRepeatMode === 'none') {
+                    globalRepeatMode = 'all';
+                    playerRepeatBtn.classList.add('active');
+                    playerRepeatBtn.innerHTML = '<i class="fa-solid fa-repeat"></i>';
+                    playerRepeatBtn.title = "Lặp lại tất cả";
+                } else if (globalRepeatMode === 'all') {
+                    globalRepeatMode = 'one';
+                    playerRepeatBtn.classList.add('active');
+                    playerRepeatBtn.innerHTML = '<i class="fa-solid fa-1"></i>';
+                    playerRepeatBtn.title = "Lặp lại 1 bài";
+                } else {
+                    globalRepeatMode = 'none';
+                    playerRepeatBtn.classList.remove('active');
+                    playerRepeatBtn.innerHTML = '<i class="fa-solid fa-repeat"></i>';
+                    playerRepeatBtn.title = "Lặp lại";
+                }
+            }
+
+            playerLikeBtn.addEventListener('click', toggleLikeOnPlayer);
+            function toggleLikeOnPlayer() {
+                if (globalCurrentIndex === -1) return;
+                var trackId = globalQueue[globalCurrentIndex].musicId;
+                var token = $('input[name="__RequestVerificationToken"]').val() || $("#__AjaxAntiForgeryForm input[name='__RequestVerificationToken']").val();
+                $.ajax({
+                    url: '/Music/ToggleLike/' + trackId,
+                    type: 'POST', data: { __RequestVerificationToken: token },
+                    success: function (response) { if (response.success) updateLikeButton(response.liked); }
+                });
+            }
+
+            volumeBtn.addEventListener('click', toggleMute);
+            function toggleMute() {
+                if (globalPlayer.volume > 0) {
+                    lastVolume = globalPlayer.volume;
+                    globalPlayer.volume = 0;
+                } else {
+                    globalPlayer.volume = lastVolume;
+                }
+            }
+
+            volumeSlider.addEventListener('input', function () {
+                globalPlayer.volume = this.value;
+                updateVolumeBar(this.value * 100);
+            });
+
+            progressSlider.addEventListener('input', function () {
+                var newTime = globalPlayer.duration * (this.value / 100);
+                globalPlayer.currentTime = newTime;
+            });
+
+            // === 5. SỰ KIỆN CỦA THẺ <AUDIO> ===
+            globalPlayer.addEventListener('ended', function () {
+                // Logic phát tiếp sau khi xem quảng cáo (nếu có)
+                if (songToPlayAfterAd != null) {
+                    var trackToPlay = songToPlayAfterAd;
+                    var indexToPlay = indexToPlayAfterAd;
+
+                    songToPlayAfterAd = null;
+                    indexToPlayAfterAd = -1;
+
+                    globalCurrentIndex = indexToPlay;
+                    globalPlayer.src = trackToPlay.filePath;
+                    globalPlayer.play();
+                    updatePlayerUI(trackToPlay);
+                    document.dispatchEvent(new CustomEvent('trackchanged', { detail: { index: indexToPlay, track: trackToPlay } }));
+                    if (trackToPlay.musicId) {
+                        $.post("/Music/IncrementViewCount/" + trackToPlay.musicId);
+                    }
+                }
+                else if (globalRepeatMode === 'one') {
+                    globalPlayer.play();
+                } else if (globalRepeatMode === 'all') {
+                    if (globalCurrentIndex === globalQueue.length - 1) playTrackAtIndex(0);
+                    else playNext();
+                } else {
+                    if (globalCurrentIndex < globalQueue.length - 1) playNext();
+                }
+            });
+
+            globalPlayer.addEventListener('timeupdate', function () {
+                if (globalPlayer.duration) {
+                    var progressPercent = (globalPlayer.currentTime / globalPlayer.duration) * 100;
+                    progressSlider.value = progressPercent;
+                    currentTimeLabel.textContent = formatTime(globalPlayer.currentTime);
+                    updateProgressBar(progressPercent);
+                }
+            });
+
+            globalPlayer.addEventListener('loadedmetadata', function () {
+                durationLabel.textContent = formatTime(globalPlayer.duration);
+            });
+
+            globalPlayer.addEventListener('play', function () {
+                playerPlayIcon.classList.remove('fa-play');
+                playerPlayIcon.classList.add('fa-pause');
+                document.dispatchEvent(new CustomEvent('playerstatechanged', { detail: { isPlaying: true } }));
+            });
+
+            globalPlayer.addEventListener('pause', function () {
+                playerPlayIcon.classList.remove('fa-pause');
+                playerPlayIcon.classList.add('fa-play');
+                document.dispatchEvent(new CustomEvent('playerstatechanged', { detail: { isPlaying: false } }));
+            });
+
+            globalPlayer.addEventListener('volumechange', function () {
+                volumeSlider.value = globalPlayer.volume;
+                updateVolumeBar(globalPlayer.volume * 100);
+                if (globalPlayer.volume === 0) {
+                    volumeIcon.classList.remove('fa-volume-high');
+                    volumeIcon.classList.add('fa-volume-off');
+                } else {
+                    volumeIcon.classList.remove('fa-volume-off');
+                    volumeIcon.classList.add('fa-volume-high');
+                }
+            });
+
+            // === 6. HÀM HỖ TRỢ ===
+            playerPlaylistBtn.style.display = 'none';
+
+            function formatTime(seconds) {
+                var minutes = Math.floor(seconds / 60);
+                seconds = Math.floor(seconds % 60);
+                return minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+            }
+
+            window.updateLikeButton = function (isLiked) {
+                var icon = playerLikeBtn.querySelector('i');
+                if (isLiked) {
+                    playerLikeBtn.classList.add('liked');
+                    icon.classList.remove('fa-regular');
+                    icon.classList.add('fa-solid');
+                } else {
+                    playerLikeBtn.classList.remove('liked');
+                    icon.classList.remove('fa-solid');
+                    icon.classList.add('fa-regular');
+                }
+            }
+
+            function checkLikeStatus(musicId) {
+                if (!musicId || musicId == 0) {
+                    updateLikeButton(false);
+                    return;
+                }
+                $.get('/Music/CheckLikeStatus/' + musicId, function (response) {
+                    updateLikeButton(response.isLiked);
+                }).fail(function () {
+                    updateLikeButton(false);
+                });
+            }
+
+            function updateProgressBar(percent) {
+                if (progressSlider) {
+                    progressSlider.style.background = 'linear-gradient(to right, #1DB954 ' + percent + '%, #4d4d4d ' + percent + '%)';
+                }
+            }
+
+            function updateVolumeBar(percent) {
+                if (volumeSlider) {
+                    volumeSlider.style.background = 'linear-gradient(to right, #fff ' + percent + '%, #4d4d4d ' + percent + '%)';
+                }
+            }
+            updateVolumeBar(volumeSlider.value * 100);
+
+            // === 7. CÁC HÀM CHO MINIGAME ===
+            function showMiniGame() {
+                gameIframe.src = '/MiniGame/BowGame?v=' + Math.random();
+                $(gameOverlay).css('display', 'flex').hide().fadeIn(300);
+            }
+
+            window.minigameWon = function() {
+                $(gameOverlay).fadeOut(300, function() {
+                    gameIframe.src = 'about:blank'; // Reset game
+                });
+
+                var trackToPlay = songToPlayAfterAd;
+                var indexToPlay = indexToPlayAfterAd;
+
+                globalCurrentIndex = indexToPlay;
+                globalPlayer.src = trackToPlay.filePath;
+                globalPlayer.play();
+                updatePlayerUI(trackToPlay);
+                document.dispatchEvent(new CustomEvent('trackchanged', { detail: { index: indexToPlay, track: trackToPlay } }));
+
+                if (trackToPlay.musicId) {
+                    $.post("/Music/IncrementViewCount/" + trackToPlay.musicId);
+                }
+
+                songToPlayAfterAd = null;
+                indexToPlayAfterAd = -1;
+            }
+        });
+    </script>
+
+    @RenderSection("scripts", required: false)
+
+</body>
+</html>

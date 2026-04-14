@@ -1,0 +1,457 @@
+﻿@model MUSICNOW.Core.ViewModels.ForYouViewModel
+@{
+    ViewBag.Title = "Dành Cho Bạn";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Chuẩn bị dữ liệu cho JavaScript (nếu có nhạc)
+    var allTracks = new List<MUSICNOW.Core.ViewModels.TrackViewModel>();
+    if (Model.FeaturedTrack != null)
+    {
+        allTracks.Add(Model.FeaturedTrack);
+        allTracks.AddRange(Model.QueueTracks);
+    }
+}
+
+@* === CSS (GIỮ NGUYÊN) === *@
+@section styles {
+    <style>
+        .foryou-container {
+            display: flex;
+            gap: 30px;
+            height: 100%;
+        }
+
+        .foryou-featured {
+            width: 40%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .foryou-queue {
+            width: 60%;
+            overflow-y: auto;
+            padding-right: 20px;
+            scrollbar-width: thin;
+            scrollbar-color: #444 #121212;
+        }
+
+            .foryou-queue::-webkit-scrollbar {
+                width: 8px;
+            }
+
+            .foryou-queue::-webkit-scrollbar-track {
+                background: #121212;
+            }
+
+            .foryou-queue::-webkit-scrollbar-thumb {
+                background-color: #444;
+                border-radius: 4px;
+            }
+
+        #foryou-avatar {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid #282828;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+        }
+
+        .spinning {
+            animation: spin 10s linear infinite;
+        }
+
+        .spinning-paused {
+            animation-play-state: paused;
+        }
+
+        @@keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .foryou-info {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        #foryou-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #fff;
+            margin: 0;
+        }
+
+        #foryou-artist {
+            font-size: 1.1rem;
+            color: #b3b3b3;
+            margin: 5px 0;
+        }
+
+        #foryou-views {
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        .foryou-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .foryou-btn {
+            background: none;
+            border: none;
+            color: #b3b3b3;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+            .foryou-btn:hover {
+                color: #fff;
+                transform: scale(1.1);
+            }
+
+            .foryou-btn#foryou-play {
+                background-color: #1DB954;
+                color: #000;
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                font-size: 1.8rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+                .foryou-btn#foryou-play:hover {
+                    background-color: #1ed760;
+                }
+
+            .foryou-btn.liked {
+                color: #1DB954;
+            }
+
+        .list-item-hover {
+            transition: background-color 0.2s ease;
+        }
+
+            .list-item-hover:hover {
+                background-color: #2a2a2a !important;
+            }
+
+            .list-item-hover.active {
+                background-color: #3a3a3a !important;
+            }
+
+        .btn-play-small-list {
+            background: none;
+            border: 1px solid #b3b3b3;
+            color: #fff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 0.8rem;
+            line-height: 1;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: all 0.2s ease;
+        }
+
+        .list-item-hover:hover .btn-play-small-list {
+            opacity: 1;
+        }
+
+        .btn-play-small-list:hover {
+            border-color: #1DB954;
+            color: #1DB954;
+            transform: scale(1.1);
+        }
+
+        .cover-art-thumb {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 15px;
+        }
+    </style>
+}
+
+@* === HTML (ĐÃ SỬA CỘT PHẢI) === *@
+<div class="foryou-container">
+
+    @if (Model.FeaturedTrack != null)
+    {
+        <div class="foryou-featured">
+            <img id="foryou-avatar" src="@Url.Content(Model.FeaturedTrack.CoverArtUrl)" alt="Cover Art"
+                 data-musicid="@Model.FeaturedTrack.MusicID"
+                 data-filepath="@Model.FeaturedTrack.FilePath"
+                 data-title="@Model.FeaturedTrack.Title"
+                 data-artist="@Model.FeaturedTrack.SingerName"
+                 data-coverarturl="@Model.FeaturedTrack.CoverArtUrl"
+                 data-views="@Model.FeaturedTrack.Views" />
+
+            <div class="foryou-info">
+                <h2 id="foryou-title">@Model.FeaturedTrack.Title</h2>
+                <p id="foryou-artist">@Model.FeaturedTrack.SingerName</p>
+                <p id="foryou-views">@Model.FeaturedTrack.Views.ToString("N0") lượt xem</p>
+            </div>
+
+            <div class="foryou-controls">
+                <button id="foryou-prev" class="foryou-btn" title="Bài trước"><i class="fa-solid fa-backward-step"></i></button>
+                <button id="foryou-play" class="foryou-btn" title="Phát"><i class="fa-solid fa-play"></i></button>
+                <button id="foryou-next" class="foryou-btn" title="Bài tiếp theo"><i class="fa-solid fa-forward-step"></i></button>
+                <button id="foryou-like" class="foryou-btn" title="Yêu thích"><i class="fa-regular fa-heart"></i></button>
+
+                <div class="dropdown">
+                    <button id="foryou-add" class="foryou-btn" title="Thêm vào Playlist" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-dark">
+                        @if (Model.UserPlaylists != null && Model.UserPlaylists.Any())
+                        {
+                            <li><h6 class="dropdown-header">Thêm vào playlist</h6></li>
+                            foreach (var playlist in Model.UserPlaylists)
+                            {
+                                <li>
+                                    <a class="dropdown-item" href="#"
+                                       onclick="addFeaturedTrackToPlaylist(event, @playlist.PlaylistID)">
+                                        @playlist.Name
+                                    </a>
+                                </li>
+                            }
+                        }
+                        else
+                        {
+                            <li><span class="dropdown-item-text text-muted">Bạn chưa có playlist nào.</span></li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="foryou-queue">
+            <h4>Tiếp theo...</h4>
+            <ul id="queue-list" class="list-group list-group-flush mt-3" style="background-color: transparent;">
+
+                @* === SỬA 1: Lặp qua 'allTracks' (để bao gồm bài featured) === *@
+                @foreach (var (track, index) in allTracks.Select((value, i) => (value, i)))
+                {
+                    @* === SỬA 2: Di chuyển data- và onclick lên <li> === *@
+                    <li class="list-group-item d-flex align-items-center list-item-hover"
+                        id="queue-item-@index"
+                        style="background-color: transparent; border: none; padding: 8px 0; border-radius: 4px; cursor: pointer;"
+                        data-musicid="@track.MusicID"
+                        data-filepath="@track.FilePath"
+                        data-title="@track.Title"
+                        data-artist="@track.SingerName"
+                        data-coverarturl="@Url.Content(track.CoverArtUrl ?? "~/Content/image/music_placeholder.png")"
+                        data-views="@track.Views"
+                        onclick="playTrackList(this, @index)">
+                        @* Truyền 'index' *@
+
+                        <img src="@Url.Content(track.CoverArtUrl ?? "~/Content/image/music_placeholder.png")"
+                             alt="@track.Title"
+                             class="cover-art-thumb">
+
+                        <span class="flex-grow-1 text-truncate">@track.Title - <span style="color: #b3b3b3;">@track.SingerName</span></span>
+
+                        @* === SỬA 3: Bỏ onclick và data- khỏi nút <button> === *@
+                        <button class="btn btn-play-small-list">
+                            ▶️
+                        </button>
+                    </li>
+                }
+            </ul>
+        </div>
+    }
+    else
+    {
+        <div class="text-center" style="width: 100%; margin-top: 50px;">
+            <p class="h5 text-muted">Chưa có bài hát nào trong hệ thống.</p>
+            <p class="text-muted">Vui lòng tải nhạc lên trước khi dùng tính năng này.</p>
+        </div>
+    }
+</div>
+
+@* === JAVASCRIPT (ĐÃ SỬA) === *@
+@section scripts {
+    <script>
+        $(document).ready(function () {
+
+            @if (Model.FeaturedTrack != null)
+            {
+                <text>
+                // 1. Lấy các phần tử Giao diện
+                var avatar = $('#foryou-avatar');
+                var title = $('#foryou-title');
+                var artist = $('#foryou-artist');
+                var views = $('#foryou-views');
+                var playBtn = $('#foryou-play');
+                var playIcon = playBtn.find('i');
+                var likeBtn = $('#foryou-like');
+                var likeIcon = likeBtn.find('i');
+
+                // 2. Biến trạng thái
+                var currentIndex = 0; // Index của bài hát đang hiển thị ở Cột Trái
+                var currentFeaturedMusicId = @Model.FeaturedTrack.MusicID;
+                var currentLikedIds = new Set(@Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.LikedMusicIds)));
+
+                // 3. HÀM XÂY DỰNG HÀNG ĐỢI (QUEUE)
+                // (Hàm này quét toàn bộ trang để xây dựng hàng đợi)
+                function buildQueue() {
+                    var queue = [];
+                    // Quét Cột Phải (vì Cột Phải giờ đã chứa tất cả bài hát)
+                    $('#queue-list .list-item-hover').each(function () {
+                        var item = $(this);
+                        queue.push({
+                            musicId: item.data('musicid'),
+                            filePath: item.data('filepath'),
+                            title: item.data('title'),
+                            artist: item.data('artist'),
+                            coverArtUrl: item.data('coverarturl'),
+                            views: item.data('views') || 0
+                        });
+                    });
+                    return queue;
+                }
+
+                // 4. HÀM PHÁT NHẠC
+
+                // (Khi click vào <li> ở Cột Phải)
+                window.playTrackList = function (liElement, index) {
+                    var queue = buildQueue();
+                    window.startQueue(queue, index);
+                }
+
+                // (Khi click vào Nút Play lớn ở Cột Trái)
+                playBtn.on('click', function () {
+                    if (window.globalCurrentIndex === currentIndex) {
+                        window.togglePlayPause();
+                    } else {
+                        var queue = buildQueue();
+                        window.startQueue(queue, currentIndex);
+                    }
+                });
+
+                // 5. Gắn sự kiện cho các nút điều khiển (Cột Trái)
+                $('#foryou-next').on('click', function () { window.playNext(); });
+                $('#foryou-prev').on('click', function () { window.playPrev(); });
+
+                likeBtn.on('click', function () {
+                    var trackId = currentFeaturedMusicId;
+                    var token = $('input[name="__RequestVerificationToken"]').val() || $("#__AjaxAntiForgeryForm input[name='__RequestVerificationToken']").val();
+                    $.ajax({
+                        url: '/Music/ToggleLike/' + trackId,
+                        type: 'POST',
+                        data: { __RequestVerificationToken: token },
+                        success: function (response) {
+                            if (response.success) {
+                                updateLikeButtonUI(response.liked);
+                                if (response.liked) currentLikedIds.add(trackId);
+                                else currentLikedIds.delete(trackId);
+                                if (window.globalCurrentIndex === currentIndex) {
+                                    window.updateLikeButton(response.liked);
+                                }
+                            }
+                        }
+                    });
+                });
+
+                window.addFeaturedTrackToPlaylist = function (event, playlistId) {
+                    event.preventDefault();
+                    var trackId = currentFeaturedMusicId;
+                    var token = $('input[name="__RequestVerificationToken"]').val() || $("#__AjaxAntiForgeryForm input[name='__RequestVerificationToken']").val();
+                    $.ajax({
+                        url: '/Music/AddSongToPlaylist',
+                        type: 'POST',
+                        data: {
+                            __RequestVerificationToken: token,
+                            musicId: trackId,
+                            playlistId: playlistId
+                        },
+                        success: function (response) {
+                            alert(response.message);
+                        },
+                        error: function (xhr) {
+                            if (xhr.status === 401) {
+                                alert("Bạn cần đăng nhập để thực hiện chức năng này.");
+                            } else {
+                                alert("Đã xảy ra lỗi. Vui lòng thử lại.");
+                            }
+                        }
+                    });
+                };
+
+                // 6. Lắng nghe "Bộ Não" từ _Layout
+
+                // Khi _Layout đổi bài
+                document.addEventListener('trackchanged', function (e) {
+                    var newTrack = e.detail.track;
+                    var newIndex = e.detail.index;
+
+                    currentIndex = newIndex; // Cập nhật index Cột Trái
+                    currentFeaturedMusicId = newTrack.musicId;
+
+                    // Cập nhật Cột Trái
+                    avatar.attr('src', newTrack.coverArtUrl || '/Content/image/music_placeholder.png');
+                    title.text(newTrack.title);
+                    artist.text(newTrack.artist);
+                    views.text((newTrack.views || 0).toLocaleString('vi-VN') + ' lượt xem');
+
+                    updateLikeButtonUI(currentLikedIds.has(newTrack.musicId));
+
+                    // Cập nhật highlight ở Cột Phải
+                    $('#queue-list .list-item-hover').removeClass('active');
+                    $('#queue-item-' + newIndex).addClass('active'); // Highlight hàng mới
+                });
+
+                // Khi _Layout Play/Pause
+                document.addEventListener('playerstatechanged', function (e) {
+                    if (e.detail.isPlaying) {
+                        playIcon.removeClass('fa-play').addClass('fa-pause');
+                    } else {
+                        playIcon.removeClass('fa-pause').addClass('fa-play');
+                    }
+                    if (e.detail.isPlaying) {
+                         avatar.addClass('spinning').removeClass('spinning-paused');
+                    } else {
+                         avatar.addClass('spinning-paused');
+                    }
+                });
+
+                // 7. Hàm hỗ trợ
+                function updateLikeButtonUI(isLiked) {
+                    if (isLiked) {
+                        likeBtn.addClass('liked');
+                        likeIcon.removeClass('fa-regular').addClass('fa-solid');
+                    } else {
+                        likeBtn.removeClass('liked');
+                        likeIcon.removeClass('fa-solid').addClass('fa-regular');
+                    }
+                }
+
+                // Khởi tạo
+                updateLikeButtonUI(currentLikedIds.has(currentFeaturedMusicId));
+                $('#queue-item-0').addClass('active'); // Highlight bài đầu tiên
+
+                </text>
+            }
+        });
+    </script>
+}

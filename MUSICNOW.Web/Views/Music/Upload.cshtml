@@ -1,0 +1,104 @@
+﻿@model MUSICNOW.Core.ViewModels.UploadMusicViewModel
+
+@{
+    ViewBag.Title = "Tải Nhạc Lên";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="profile-container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+
+            <div class="card p-4 dark-card">
+                <h2 class="card-title-premium">Tải Nhạc Lên</h2>
+                <p class="text-muted small">Chia sẻ âm nhạc của bạn với cộng đồng MusicNow.</p>
+                <hr style="border-color: #444;" />
+
+                @using (Html.BeginForm("Upload", "Music", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                    <div class="form-group mb-3">
+                        @Html.LabelFor(m => m.Title, "Tên bài hát", new { @class = "form-label" })
+                        @Html.TextBoxFor(m => m.Title, new { @class = "form-control dark-input", placeholder = "Ví dụ: Lối nhỏ" })
+                        @Html.ValidationMessageFor(m => m.Title, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="form-group mb-3">
+                        @Html.LabelFor(m => m.SingerName, "Tên nghệ sĩ", new { @class = "form-label" })
+                        @Html.TextBoxFor(m => m.SingerName, new { @class = "form-control dark-input", placeholder = "Ví dụ: Đen Vâu ft. Phương Anh Đào" })
+                        @Html.ValidationMessageFor(m => m.SingerName, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="form-group mb-3">
+                        @Html.LabelFor(m => m.CategoryID, "Thể loại", new { @class = "form-label" })
+                        @Html.DropDownListFor(m => m.CategoryID, (SelectList)ViewBag.Categories, "--- Chọn thể loại ---", new { @class = "form-control dark-input" })
+                        @Html.ValidationMessageFor(m => m.CategoryID, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <div class="form-group mb-3">
+                        @Html.LabelFor(m => m.CoverArtFile, new { @class = "form-label" })
+                        <input type="file" name="CoverArtFile" id="CoverArtFile" class="form-control dark-input" accept=".jpg,.jpeg,.png" />
+                        @Html.ValidationMessageFor(m => m.CoverArtFile, "", new { @class = "text-danger small" })
+                    </div>
+                    <div class="form-group mb-4">
+                        @Html.LabelFor(m => m.MusicFile, "File nhạc", new { @class = "form-label" })
+                        <input type="file" name="MusicFile" id="MusicFile" class="form-control dark-input" accept=".mp3,.wav,.m4a" required />
+                        @Html.ValidationMessageFor(m => m.MusicFile, "", new { @class = "text-danger small" })
+                    </div>
+
+                    <button type="submit" class="btn btn-lg btn-success w-100">
+                        <i class="fas fa-upload"></i> Tải Lên
+                    </button>
+                }
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Thêm CSS cho các input *@
+@section styles {
+    <style>
+        .profile-container {
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .dark-card {
+            background-color: #1E1E1E;
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            height: 100%;
+        }
+
+        .card-title-premium {
+            color: #1DB954;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .dark-input {
+            background-color: #4a4a4a !important;
+            border: 1px solid #666 !important;
+            color: #fff !important;
+        }
+            /* CSS cho input[type=file] */
+            .dark-input[type="file"]::file-selector-button {
+                background-color: #555;
+                color: #fff;
+                border: none;
+                padding: 0.5rem 1rem;
+                border-radius: 0.25rem;
+                cursor: pointer;
+                margin-right: 1rem;
+            }
+
+                .dark-input[type="file"]::file-selector-button:hover {
+                    background-color: #1DB954;
+                }
+    </style>
+}

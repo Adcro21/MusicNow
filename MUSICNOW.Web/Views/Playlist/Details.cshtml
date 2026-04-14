@@ -1,0 +1,223 @@
+﻿@model List<MUSICNOW.Core.ViewModels.TrackViewModel>
+@{
+    ViewBag.Title = ViewBag.PlaylistName;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section styles {
+    <style>
+        .list-item-hover {
+            transition: background-color 0.2s ease;
+        }
+
+            .list-item-hover:hover {
+                background-color: #2a2a2a !important;
+            }
+
+        .btn-play-small-list {
+            background: none;
+            border: 1px solid #b3b3b3;
+            color: #fff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 0.8rem;
+            line-height: 1;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: all 0.2s ease;
+        }
+
+        .list-item-hover:hover .btn-play-small-list {
+            opacity: 1;
+        }
+
+        .btn-play-small-list:hover {
+            border-color: #1DB954;
+            color: #1DB954;
+            transform: scale(1.1);
+        }
+
+        .cover-art-thumb {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 15px;
+        }
+
+        .playlist-header {
+            display: flex;
+            align-items: flex-end;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .playlist-cover-art {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            flex-shrink: 0;
+        }
+
+        .btn-remove-song {
+            background: none;
+            border: none;
+            color: #b3b3b3;
+            font-size: 1rem;
+            opacity: 0;
+            transition: all 0.2s ease;
+            margin-left: 10px;
+        }
+
+        .list-item-hover:hover .btn-remove-song {
+            opacity: 1;
+        }
+
+        .btn-remove-song:hover {
+            color: #dc3545;
+            transform: scale(1.2);
+        }
+    </style>
+}
+
+<div class="container-fluid content-container mt-4">
+
+    <div class="playlist-header">
+        <img src="@Url.Content(ViewBag.PlaylistCover ?? "~/Content/image/music_placeholder.png")"
+             alt="Playlist Cover"
+             class="playlist-cover-art" />
+        <div>
+            <h2 class="section-title" style="margin-bottom: 10px;"> @ViewBag.PlaylistName</h2>
+            <div>
+                <a href="@Url.Action("Edit", "Playlist", new { id = ViewBag.PlaylistID })" class="btn btn-sm btn-outline-warning">
+                    Chỉnh sửa
+                </a>
+                <a href="@Url.Action("Delete", "Playlist", new { id = ViewBag.PlaylistID })" class="btn btn-sm btn-outline-danger">
+                    Xóa
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <ul class="list-group list-group-flush mt-4" style="background-color: transparent;">
+
+        @if (Model != null && Model.Any())
+        {
+            int counter = 1;
+            foreach (var track in Model)
+            {
+                <li class="list-group-item d-flex align-items-center list-item-hover"
+                    id="track-@track.MusicID"
+                    style="background-color: transparent; border: none; padding: 8px 0; border-radius: 4px;">
+
+                    <span style="color: #b3b3b3; margin-right: 15px; min-width: 20px;">@(counter++)</span>
+
+                    <img src="@Url.Content(track.CoverArtUrl ?? "~/Content/image/music_placeholder.png")"
+                         alt="@track.Title"
+                         class="cover-art-thumb">
+                    <span class="flex-grow-1 text-truncate">@track.Title - <span style="color: #b3b3b3;">@track.SingerName</span></span>
+
+                    <button class="btn btn-play-small-list"
+                            data-filepath="@track.FilePath"
+                            data-musicid="@track.MusicID"
+                            data-title="@track.Title"
+                            data-artist="@track.SingerName"
+                            onclick="playTrackList(this)">
+                        @* <-- Sửa tên hàm *@
+                        ▶️
+                    </button>
+
+                    <button class="btn-remove-song"
+                            title="Xóa khỏi playlist"
+                            onclick="removeSong(this, @ViewBag.PlaylistID, @track.MusicID)">
+                        ❌
+                    </button>
+                </li>
+            }
+        }
+        else
+        {
+            <li class="list-group-item text-muted" style="background-color: transparent; border: none;">
+                Playlist này chưa có bài hát nào. Bạn có thể thêm bài hát từ trang chủ.
+            </li>
+        }
+    </ul>
+</div>
+
+@* === SỬA TOÀN BỘ LOGIC SCRIPT === *@
+@section scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // Hàm này (playTrackList) sẽ xây dựng hàng đợi cho list nhạc
+            window.playTrackList = function (buttonElement) {
+                var container = $(buttonElement).closest('ul');
+                var allPlayButtons = container.find('.btn-play-small-list');
+                var queue = [];
+                var startIndex = 0;
+
+                allPlayButtons.each(function (index, btn) {
+                    var track = {
+                        filePath: $(btn).data('filepath'),
+                        musicId: $(btn).data('musicid'),
+                        title: $(btn).data('title'),
+                        artist: $(btn).data('artist'),
+                        coverArtUrl: $(btn).siblings('img').attr('src')
+                    };
+                    queue.push(track);
+                    if (btn === buttonElement) {
+                        startIndex = index;
+                    }
+                });
+                window.startQueue(queue, startIndex);
+            }
+
+            // === HÀM REMOVE SONG (GIỮ NGUYÊN) ===
+            window.removeSong = function (buttonElement, playlistId, musicId) {
+                if (!confirm("Bạn có chắc muốn xóa bài hát này khỏi playlist?")) {
+                    return;
+                }
+                var token = $('input[name="__RequestVerificationToken"]').val();
+                if (!token) {
+                    token = $('#logoutForm input[name="__RequestVerificationToken"]').val();
+                }
+                if (!token) {
+                    token = $("#__AjaxAntiForgeryForm input[name='__RequestVerificationToken']").val();
+                }
+
+                $.ajax({
+                    url: '/Playlist/RemoveSongFromPlaylist',
+                    type: 'POST',
+                    data: {
+                        __RequestVerificationToken: token,
+                        playlistId: playlistId,
+                        musicId: musicId
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            var row = $(buttonElement).closest('li');
+                            row.slideUp(300, function () {
+                                $(this).remove();
+                            });
+                        } else {
+                            alert(response.message || "Lỗi. Không thể xóa.");
+                        }
+                    },
+                    error: function (xhr) {
+                        if (xhr.status === 401) {
+                            alert("Bạn cần đăng nhập để thực hiện chức năng này.");
+                        } else {
+                            alert("Đã xảy ra lỗi. Vui lòng thử lại.");
+                        }
+                    }
+                });
+            };
+        });
+    </script>
+}

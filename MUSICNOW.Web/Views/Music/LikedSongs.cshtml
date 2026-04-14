@@ -1,0 +1,137 @@
+﻿@model List<MUSICNOW.Core.ViewModels.TrackViewModel>
+@{
+    ViewBag.Title = "Bài hát đã thích";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@* (CSS giữ nguyên) *@
+@section styles {
+    <style>
+        .list-item-hover {
+            transition: background-color 0.2s ease;
+        }
+
+            .list-item-hover:hover {
+                background-color: #2a2a2a !important;
+            }
+
+        .btn-play-small-list {
+            background: none;
+            border: 1px solid #b3b3b3;
+            color: #fff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 0.8rem;
+            line-height: 1;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: all 0.2s ease;
+        }
+
+        .list-item-hover:hover .btn-play-small-list {
+            opacity: 1;
+        }
+
+        .btn-play-small-list:hover {
+            border-color: #1DB954;
+            color: #1DB954;
+            transform: scale(1.1);
+        }
+
+        .cover-art-thumb {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 15px;
+        }
+    </style>
+}
+
+<div class="container-fluid content-container mt-4">
+    <h2 class="section-title">❤️ Bài hát đã thích</h2>
+
+    <ul class="list-group list-group-flush mt-4" style="background-color: transparent;">
+
+        @if (Model != null && Model.Any())
+        {
+            int counter = 1;
+            foreach (var track in Model)
+            {
+                <li class="list-group-item d-flex align-items-center list-item-hover"
+                    style="background-color: transparent; border: none; padding: 8px 0; border-radius: 4px;">
+
+                    <span style="color: #b3b3b3; margin-right: 15px; min-width: 20px;">@(counter++)</span>
+
+
+                    <img src="@Url.Content(track.CoverArtUrl ?? "~/Content/image/music_placeholder.png")"
+                         alt="@track.Title"
+                         class="cover-art-thumb">
+
+                    <span class="flex-grow-1 text-truncate">@track.Title - <span style="color: #b3b3b3;">@track.SingerName</span></span>
+
+
+                    <button class="btn btn-play-small-list"
+                            data-filepath="@track.FilePath"
+                            data-musicid="@track.MusicID"
+                            data-title="@track.Title"
+                            data-artist="@track.SingerName"
+                            onclick="playTrackList(this)">
+                        @* <-- Sửa tên hàm *@
+                        ▶️
+                    </button>
+
+                </li>
+            }
+        }
+        else
+        {
+            <p class="text-muted">Bạn chưa thích bài hát nào.</p>
+        }
+    </ul>
+</div>
+
+@* === SỬA TOÀN BỘ LOGIC SCRIPT === *@
+@section scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // Hàm này (playTrackList) sẽ xây dựng hàng đợi cho list nhạc
+            window.playTrackList = function (buttonElement) {
+                // 1. Tìm container cha (ul)
+                var container = $(buttonElement).closest('ul');
+                // 2. Tìm tất cả các nút play trong container đó
+                var allPlayButtons = container.find('.btn-play-small-list');
+
+                var queue = [];
+                var startIndex = 0;
+
+                // 3. Lặp qua tất cả nút để xây dựng hàng đợi
+                allPlayButtons.each(function (index, btn) {
+                    var track = {
+                        filePath: $(btn).data('filepath'),
+                        musicId: $(btn).data('musicid'),
+                        title: $(btn).data('title'),
+                        artist: $(btn).data('artist'),
+                        // Lấy ảnh từ thẻ <img> anh em
+                        coverArtUrl: $(btn).siblings('img').attr('src')
+                    };
+                    queue.push(track);
+
+                    // Nếu nút này là nút vừa được click
+                    if (btn === buttonElement) {
+                        startIndex = index;
+                    }
+                });
+
+                // 4. Gửi hàng đợi đến Player Toàn Cục (trong _Layout)
+                window.startQueue(queue, startIndex);
+            }
+
+        });
+    </script>
+}

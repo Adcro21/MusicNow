@@ -1,0 +1,53 @@
+﻿@model MUSICNOW.Core.Entities.Playlist
+@{
+    ViewBag.Title = "Xác Nhận Xóa Playlist";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section styles {
+    <style>
+        .profile-container {
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .dark-card {
+            background-color: #1E1E1E;
+            border: none;
+            border-radius: 10px;
+        }
+
+        .card-title-danger {
+            color: #dc3545;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
+}
+
+<div class="profile-container mt-4">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card p-4 dark-card">
+                <h2 class="card-title-danger">Xác Nhận Xóa</h2>
+                <hr style="border-color: #444;" />
+
+                <p class="text-light">Bạn có chắc chắn muốn xóa playlist này không?</p>
+                <h3 class="text-warning">@Model.Name</h3>
+
+                @using (Html.BeginForm("DeleteConfirmed", "Playlist", new { id = Model.PlaylistID }, FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+
+                    <button type="submit" class="btn btn-danger w-100 mt-3">
+                        Vâng, Xóa Playlist Này
+                    </button>
+                    <a href="@Url.Action("Details", "Playlist", new { id = Model.PlaylistID })" class="btn btn-secondary w-100 mt-2">
+                        Hủy
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+</div>

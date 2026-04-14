@@ -1,0 +1,619 @@
+﻿/* =========================================================================
+   CÀI ĐẶT CHUNG VÀ KHUNG SƯỜN (Tách từ _Layout)
+========================================================================= */
+body {
+    background-color: #121212;
+    color: #e0eeef;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    padding-bottom: 90px; /* Dành chỗ cho Player cố định */
+}
+
+/* Khung chính - Wrapper */
+#main-wrapper {
+    display: flex;
+    min-height: calc(100vh - 90px);
+    padding-top: 76px; /* Đẩy nội dung xuống dưới Header */
+}
+
+/* Nội dung chính */
+main {
+    flex-grow: 1;
+    padding: 20px;
+    background-color: #121212;
+    /* Bắt CHỈ khu vực này cuộn */
+    height: calc(100vh - 76px - 90px); /* (100% - Header - Player) */
+    overflow-y: auto;
+}
+
+/* Nút */
+.btn-play-small {
+    background-color: #1DB954;
+    color: #fff;
+    border: none;
+    padding: 5px 15px;
+    border-radius: 50px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* =========================================================================
+    HEADER (_Header.cshtml) - Cấu trúc Chính
+========================================================================= */
+
+.header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 0.5rem 1.5rem;
+    background-color: #282828;
+    border-bottom: 1px solid #404040;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 900;
+    height: 76px;
+}
+
+/* ----- 1. LOGO GROUP ----- */
+.logo-group {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    gap: 10px;
+    flex-shrink: 0;
+    transition: transform 0.2s ease, filter 0.2s ease;
+    cursor: pointer;
+}
+
+    .logo-group:hover {
+        transform: scale(1.02);
+    }
+
+.logo-img {
+    height: 60px;
+    width: auto;
+    object-fit: contain;
+    flex-shrink: 0;
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+    .logo-img:hover {
+        transform: scale(1.08);
+        filter: brightness(1.1);
+    }
+
+.logo-text {
+    color: #1DB954;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* ----- 2. SEARCH INPUT ----- */
+.search-wrapper {
+    position: relative;
+    flex-grow: 1;
+    max-width: 600px;
+    display: flex;
+}
+
+#search {
+    width: 100%;
+    max-width: 800px;
+    height: 40px;
+    padding: 0 1rem;
+    font-size: 0.9rem;
+    border-radius: 50px;
+    border: 1px solid #535353;
+    background-color: #3e3e3e;
+    color: #e0e0e0;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+    #search::placeholder {
+        color: #a0a0a0;
+    }
+
+    #search:focus {
+        border-color: #1DB954;
+        background-color: #4a4a4a;
+        box-shadow: 0 0 10px rgba(29, 185, 84, 0.3);
+    }
+
+/* ----- 3. ACTION BUTTONS ----- */
+.action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-shrink: 0;
+}
+
+.btn {
+    padding: 8px 20px;
+    font-size: 0.9rem;
+    border-radius: 50px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    color: #ffffff;
+}
+
+    .btn:hover {
+        transform: scale(1.05);
+        opacity: 0.9;
+    }
+
+.btn-premium {
+    background-color: #1DB954;
+}
+
+    .btn-premium:hover {
+        background-color: #1ed760;
+    }
+
+.btn-login {
+    background-color: #4a4a4a;
+    color: #ffffff;
+}
+
+    .btn-login:hover {
+        background-color: #5a5a5a;
+    }
+
+.link-text {
+    color: #b3b3b3;
+    text-decoration: none;
+    padding: 5px 10px;
+    transition: color 0.2s ease;
+}
+
+    .link-text:hover {
+        color: #ffffff;
+        text-decoration: underline;
+    }
+
+/* =========================================================================
+    NÚT PREMIUM VIP
+========================================================================= */
+.btn-premium-vip {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    color: #121212;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+    border: 2px solid #fff;
+    animation: pulse-vip 1.5s infinite alternate;
+}
+
+    .btn-premium-vip:hover {
+        background: linear-gradient(135deg, #ffe54c 0%, #ffc04c 100%);
+        transform: scale(1.08) !important;
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.7);
+    }
+
+@keyframes pulse-vip {
+    0% {
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    }
+
+    100% {
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.9);
+    }
+}
+
+/* =========================================================================
+        SIDEBAR (_Sidebar.cshtml)
+========================================================================= */
+#sidebar {
+    width: 250px;
+    background-color: #000000;
+    flex-shrink: 0;
+    padding: 10px;
+    /* SỬA: Biến Sidebar thành "dính" (sticky) */
+    position: sticky;
+    top: 76px;
+    height: calc(100vh - 76px - 90px); /* (100% - Header - Player) */
+    overflow-y: auto;
+}
+
+/* --- Menu điều hướng --- */
+.menu {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 10px 0;
+}
+
+    .menu li {
+        margin-bottom: 2px;
+    }
+
+.menu-link {
+    display: flex;
+    align-items: center;
+    padding: 10px 10px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #b3b3b3;
+    font-weight: 500;
+    font-size: 15px;
+    transition: background-color 0.3s, color 0.3s;
+    gap: 10px;
+}
+
+    .menu-link:hover {
+        background-color: #1A1A1A;
+        color: #ffffff;
+    }
+
+    .menu-link.active {
+        color: #ffffff;
+        font-weight: bold;
+        background-color: #282828;
+    }
+
+.menu-link-with-art {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px;
+    padding: 8px 10px !important;
+}
+
+.sidebar-playlist-art {
+    width: 32px;
+    height: 32px;
+    object-fit: cover;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.sidebar-playlist-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* --- Phần Kêu gọi Hành động (CTA) --- */
+.login-section {
+    margin-top: 30px;
+    padding: 15px;
+    background-color: #181818;
+    border-radius: 8px;
+}
+
+    .login-section p {
+        font-size: 14px;
+        margin-bottom: 15px;
+        line-height: 1.5;
+        color: #b3b3b3;
+    }
+
+.login-button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background-color: #ffffff;
+    color: #000000;
+    border: none;
+    border-radius: 50px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+    .login-button:hover {
+        transform: scale(1.02);
+        background-color: #f0f0f0;
+    }
+
+/* =========================================================================
+   NỘI DUNG CHÍNH (Music/Index.cshtml)
+========================================================================= */
+.card-album {
+    background-color: #1E1E1E;
+    border: none;
+    border-radius: 8px;
+    overflow: hidden;
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+    .card-album .img-placeholder {
+        height: 120px;
+        width: 100%;
+        background: linear-gradient(135deg, #222, #1DB954);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: bold;
+        font-size: 1.5rem;
+        color: #fff;
+        border-radius: 4px;
+    }
+
+.card-artist {
+    background-color: #1E1E1E;
+    border: none;
+    border-radius: 50%;
+    overflow: hidden;
+    color: #fff;
+    text-align: center;
+}
+
+    .card-artist .img-placeholder {
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ff4d4d, #b30000); /* Màu đỏ */
+    }
+
+.list-group-item {
+    background-color: transparent !important;
+    border: none !important;
+    padding: 8px 0 !important;
+    color: #fff;
+}
+
+    .list-group-item:hover {
+        background-color: #1e1e1e !important;
+        cursor: pointer;
+    }
+
+
+/* =========================================================================
+   MUSIC PLAYER MỚI (NÂNG CẤP MỤC 3)
+   (Đây là khối code bạn đã bỏ lỡ)
+========================================================================= */
+
+#music-player {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 90px;
+    background-color: #181818; /* Đổi màu nền tối hơn */
+    z-index: 1000;
+    padding: 0 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid #282828; /* Border-top tinh tế */
+}
+
+/* 1. KHỐI THÔNG TIN BÀI HÁT (BÊN TRÁI) */
+.player-track-info {
+    display: flex;
+    align-items: center;
+    min-width: 200px;
+    flex: 1;
+    max-width: 450px;
+}
+
+.player-cover-art {
+    width: 56px !important; /* Cố định chiều rộng */
+    height: 56px !important; /* Cố định chiều cao */
+    object-fit: cover; /* Cắt ảnh vừa khung */
+    border-radius: 4px;
+    margin-right: 12px;
+    flex-shrink: 0; /* Ngăn ảnh bị co lại */
+}
+
+.player-track-details {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+}
+
+#player-title {
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#player-artist {
+    color: #b3b3b3;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#player-like-btn {
+    background: none;
+    border: none;
+    color: #b3b3b3;
+    font-size: 1.1rem;
+    margin-left: 15px;
+    cursor: pointer;
+}
+
+    #player-like-btn.liked {
+        color: #1DB954; /* Màu xanh khi đã like */
+    }
+
+/* 2. KHỐI ĐIỀU KHIỂN CHÍNH (Ở GIỮA) */
+.player-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    max-width: 450px;
+    flex: 1; /* Cho phép nó tự co giãn */
+    min-width: 350px; /* Đảm bảo các nút không bị vỡ ở màn hình hẹp */
+}
+
+.player-control-buttons {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 8px;
+    width: 100%;
+    justify-content: center; 
+}
+
+.player-btn {
+    background: none;
+    border: none;
+    color: #b3b3b3;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+    .player-btn:hover {
+        color: #fff;
+        transform: scale(1.1);
+    }
+
+    .player-btn.active {
+        color: #1DB954; /* Màu xanh khi (Repeat) active */
+    }
+
+#player-play-btn {
+    background-color: #fff;
+    color: #000;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+    #player-play-btn:hover {
+        background-color: #f0f0f0;
+        transform: scale(1.05);
+    }
+
+/* Thanh tua nhạc (Progress Bar) */
+.player-progress-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 8px;
+}
+
+.player-time {
+    font-size: 0.75rem;
+    color: #b3b3b3;
+    min-width: 35px;
+    text-align: center;
+}
+
+/* Tùy chỉnh thanh slider (range input) */
+input[type="range"].progress-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    background: #4d4d4d; /* SẼ BỊ JS GHI ĐÈ BẰNG MÀU TÔ */
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+}
+    /* Thanh trượt (thumb) */
+    input[type="range"].progress-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 12px;
+        height: 12px;
+        background: #fff;
+        border-radius: 50%;
+        opacity: 0; /* Ẩn đi */
+        transition: opacity 0.2s ease;
+    }
+/* Hiện thumb khi hover */
+.player-progress-container:hover input[type="range"].progress-slider::-webkit-slider-thumb {
+    opacity: 1;
+}
+
+/* 3. KHỐI ÂM LƯỢNG (BÊN PHẢI) */
+.player-volume-controls {
+    min-width: 150px;
+    flex: 1; 
+    max-width: 300px; 
+    justify-content: flex-end; 
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* === SỬA KHỐI NÀY === */
+input[type="range"].volume-slider {
+    -webkit-appearance: none;
+    width: 100px;
+    height: 4px;
+    background: #4d4d4d; /* SẼ BỊ JS GHI ĐÈ BẰNG MÀU TÔ */
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.2s ease; /* Thêm transition */
+}
+
+    input[type="range"].volume-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 12px;
+        height: 12px;
+        background: #fff;
+        border-radius: 50%;
+        opacity: 0; /* Ẩn đi (GIỐNG PROGRESS BAR) */
+        transition: opacity 0.2s ease;
+    }
+/* Hiện thumb khi hover (GIỐNG PROGRESS BAR) */
+.player-volume-controls:hover input[type="range"].volume-slider::-webkit-slider-thumb {
+    opacity: 1;
+}
+
+
+/* =========================================================================
+   MINIGAME AD OVERLAY (MỤC 6)
+========================================================================= */
+
+#minigame-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.95); /* Nền đen mờ */
+    z-index: 2000; /* Che lên trên tất cả */
+    /* Mặc định ẩn (dùng display, không dùng visibility) */
+    display: none;
+    /* Căn giữa */
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.game-instructions {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#game-container {
+    width: 900px; /* Chiều rộng của game */
+    height: 500px; /* Chiều cao của game */
+    background-color: #111;
+    border-radius: 10px;
+    overflow: hidden; /* Ẩn viền IFrame */
+}
+
+#game-iframe {
+    width: 100%;
+    height: 100%;
+    border: none; /* Xóa viền của IFrame */
+}

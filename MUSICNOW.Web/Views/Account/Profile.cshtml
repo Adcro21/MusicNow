@@ -1,0 +1,324 @@
+﻿@model MUSICNOW.Core.ViewModels.ProfileViewModel
+
+@{
+    ViewBag.Title = "Thông Tin Cá Nhân";
+    Layout = "~/Views/Shared/_Layout.cshtml"; // Đảm bảo dùng Layout chính
+}
+
+@* SỬ DỤNG FLEXBOX CHO BỐ CỤC CHÍNH *@
+<div class="profile-container mt-4">
+
+    @* =========================================================================
+           KHỐI 1: HEADER USER (Giữ nguyên)
+        ========================================================================= *@
+    <div class="user-header-card p-4 mb-5">
+        <div class="d-flex align-items-end">
+
+            @* AVATAR LỚN *@
+            <div class="avatar-display me-4">
+                @if (!string.IsNullOrEmpty(Model.AvatarUrl))
+                {
+                    <img src="@Url.Content(Model.AvatarUrl)" alt="Avatar" class="profile-avatar-img" />
+                }
+                else
+                {
+                    <img src="~/Content/image/avt.png" alt="Default Avatar" class="profile-avatar-img" />
+                }
+            </div>
+
+            @* THÔNG TIN CƠ BẢN VÀ ROLE *@
+            <div>
+                <span class="user-role-label">@Model.Role</span>
+                <h1 class="user-username-display">@Model.Username</h1>
+                <p class="user-email-display">@Model.Email</p>
+            </div>
+        </div>
+
+        @* NÚT CHÍNH: SỬA HỒ SƠ *@
+        <div class="action-buttons-group mt-4">
+            <a href="#edit-section" class="btn btn-edit-profile">✏️ Sửa hồ sơ</a>
+            @if (Model.Role == "MusicCreator" || Model.Role == "Admin")
+            {
+                <a href="@Url.Action("Upload", "Music")" class="btn btn-manage-content">🎶 Quản lý nhạc đã tải lên</a>
+            }
+        </div>
+    </div>
+
+    @* =========================================================================
+           KHỐI 2: CHI TIẾT TÀI KHOẢN (ĐÃ CẬP NHẬT)
+        ========================================================================= *@
+
+    <div class="row" id="edit-section">
+
+        @* KHỐI BÊN TRÁI (Premium & Creator) *@
+        <div class="col-md-6">
+            <div class="card p-4 dark-card">
+
+                @* Phần Premium (Giữ nguyên) *@
+                <h4 class="card-title-premium">⭐ Trạng Thái Premium</h4>
+                <div class="d-flex align-items-center mb-3">
+                    <span class="premium-status-badge @(Model.IsPremium ? "bg-success-dark" : "bg-muted-dark")">
+                        @(Model.IsPremium ? "ĐANG HOẠT ĐỘNG" : "CHƯA KÍCH HOẠT")
+                    </span>
+                    @if (Model.IsPremium)
+                    {
+                        <span class="text-muted small ms-3">Hết hạn: @Html.DisplayFor(m => m.PremiumExpiryDate)</span>
+                    }
+                </div>
+                @if (!Model.IsPremium)
+                {
+                    <a href="@Url.Action("Index", "Payment", new { type = "Premium" })" class="btn btn-premium-action mb-2">Nâng cấp Premium</a>
+                }
+                else
+                {
+                    <a href="#" class="btn btn-premium-action bg-warning text-dark mb-2">Gia hạn Premium</a>
+                }
+
+                @* === THÊM KHỐI MỚI NÀY VÀO (ĐÃ SỬA LỖI CÚ PHÁP) === *@
+                <hr style="border-color: #444;">
+
+                <h4 class="card-title-premium" style="color: #0dcaf0;">🎶 Trạng Thái Nghệ Sĩ</h4>
+
+                @if (Model.Role == "GeneralUser")
+                {
+                    <p class="text-muted small">Bạn muốn chia sẻ âm nhạc của mình? Hãy đăng ký để trở thành Music Creator.</p>
+
+                    <a href="@Url.Action("Index", "Payment", new { type = "Creator" })" class="btn btn-info w-100">Trở thành Music Creator</a>
+                }
+                else
+                {
+                    <p class="text-success small">Tài khoản của bạn đã là <strong>@Model.Role</strong>. Bạn có thể tải nhạc lên ngay bây giờ!</p>
+                    <a href="@Url.Action("Upload", "Music")" class="btn btn-info w-100">Đi đến trang Tải Lên</a>
+                }
+                @* === KẾT THÚC KHỐI THÊM === *@
+
+            </div>
+        </div>
+
+        @* KHỐI BÊN PHẢI (Bảo mật & Avatar) (Giữ nguyên) *@
+        <div class="col-md-6">
+            <div class="card p-4 dark-card">
+                <h4 class="card-title-security">🛡️ Bảo Mật & Avatar</h4>
+
+                <button id="btnShowChangePassword" type="button" class="btn btn-secondary w-100 mb-3">
+                    Đổi Mật Khẩu
+                </button>
+
+                <div id="changePasswordForm" style="display: none;">
+                    <p class="mb-2"><strong>Đổi Mật Khẩu</strong></p>
+
+                    @if (TempData["PasswordSuccess"] != null)
+                    {
+                        <p class="text-success small">@TempData["PasswordSuccess"]</p>
+                    }
+                    @if (TempData["PasswordError"] != null)
+                    {
+                        <p class="text-danger small">@TempData["PasswordError"]</p>
+                    }
+
+                    @using (Html.BeginForm("ChangePassword", "Account", FormMethod.Post, new { @class = "mb-4" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                        <div class="form-group mb-2">
+                            @Html.Label("OldPassword", "Mật khẩu cũ", new { @class = "form-label small text-muted" })
+                            @Html.Password("OldPassword", new { @class = "form-control form-control-sm dark-input", required = "required", autocomplete = "current-password" })
+                        </div>
+
+                        <div class="form-group mb-2">
+                            @Html.Label("NewPassword", "Mật khẩu mới", new { @class = "form-label small text-muted" })
+                            @Html.Password("NewPassword", new { @class = "form-control form-control-sm dark-input", required = "required", autocomplete = "new-password" })
+                        </div>
+
+                        <div class="form-group mb-3">
+                            @Html.Label("ConfirmNewPassword", "Xác nhận mật khẩu mới", new { @class = "form-label small text-muted" })
+                            @Html.Password("ConfirmNewPassword", new { @class = "form-control form-control-sm dark-input", required = "required", autocomplete = "new-password" })
+                        </div>
+
+                        <button type="submit" class="btn btn-sm btn-warning w-100">Cập nhật Mật khẩu</button>
+                    }
+                </div>
+
+                <hr style="border-color: #444;">
+
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <p class="text-success small mt-2">@TempData["SuccessMessage"]</p>
+                }
+
+                @using (Html.BeginForm("UploadAvatar", "Account", FormMethod.Post, new { enctype = "multipart/form-data", @class = "mt-4" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="form-group mb-3">
+                        <label for="avatarFile" class="form-label small text-muted">Tải lên ảnh mới (JPG, PNG)</label>
+                        <input type="file" name="avatarFile" id="avatarFile" class="form-control form-control-sm dark-input" accept=".jpg,.jpeg,.png" required />
+                        @Html.ValidationMessage("AvatarUploadError", new { @class = "text-danger small" })
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-info w-100">Cập nhật Avatar</button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@* PHẦN CSS (Giữ nguyên) *@
+@section styles {
+    <style>
+        .profile-container {
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .user-header-card {
+            background: linear-gradient(135deg, #181818 0%, #3a3a3a 100%);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            padding: 40px;
+        }
+
+        .avatar-display {
+            position: relative;
+            flex-shrink: 0;
+            width: 150px; /* Chiều rộng cố định */
+            height: 150px; /* Chiều cao cố định */
+            border-radius: 50%; /* Tạo hình tròn */
+            overflow: hidden; /* Cắt ảnh nếu tràn ra ngoài khung tròn */
+            border: 4px solid #1DB954; /* Viền xanh lá */
+            box-shadow: 0 0 0 5px rgba(29, 185, 84, 0.2);
+            display: flex; /* Dùng flexbox để căn giữa ảnh */
+            justify-content: center;
+            align-items: center;
+        }
+
+        .profile-avatar-img {
+            width: 100%; /* Ảnh sẽ lấp đầy chiều rộng của khung */
+            height: 100%; /* Ảnh sẽ lấp đầy chiều cao của khung */
+            object-fit: cover; /* Đảm bảo ảnh không bị méo, cắt bỏ phần thừa */
+        }
+
+        .user-role-label {
+            color: #b3b3b3;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .user-username-display {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 0.1rem;
+            color: #ffffff;
+        }
+
+        .user-email-display {
+            color: #a7a7a7;
+            margin-top: 0;
+        }
+
+        .btn-edit-profile {
+            background-color: transparent;
+            border: 2px solid #b3b3b3;
+            color: #ffffff;
+            padding: 8px 25px;
+            border-radius: 50px;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+            .btn-edit-profile:hover {
+                background-color: #555555;
+                border-color: #ffffff;
+            }
+
+        .btn-manage-content {
+            background-color: #535353;
+            color: #ffffff;
+            padding: 8px 25px;
+            border-radius: 50px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .dark-card {
+            background-color: #1E1E1E;
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            height: 100%;
+        }
+
+        .card-title-premium {
+            color: #1DB954;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .card-title-security {
+            color: #FFC107;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .premium-status-badge {
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .bg-success-dark {
+            background-color: #1DB954;
+            color: #000;
+        }
+
+        .bg-muted-dark {
+            background-color: #333;
+            color: #fff;
+        }
+
+        .dark-input {
+            background-color: #4a4a4a !important;
+            border: 1px solid #666 !important;
+            color: #fff !important;
+        }
+
+        .btn-premium-action {
+            background-color: #1DB954;
+            color: #000;
+            font-weight: bold;
+            border-radius: 50px;
+            padding: 10px 0;
+            width: 100%;
+            display: block;
+            text-align: center;
+            text-decoration: none;
+            margin-top: 15px;
+        }
+    </style>
+}
+
+@* PHẦN JAVASCRIPT (Giữ nguyên) *@
+@section scripts {
+    <script>
+        $(document).ready(function () {
+
+            $('#btnShowChangePassword').on('click', function () {
+                $(this).hide();
+                $('#changePasswordForm').slideDown(300);
+            });
+
+            // (CẢI TIẾN UX - Giữ nguyên)
+            if ($('#changePasswordForm .text-danger').length > 0 && $('#changePasswordForm .text-danger').text().trim() !== "") {
+                $('#btnShowChangePassword').hide();
+                $('#changePasswordForm').show();
+            }
+            if ($('#changePasswordForm .text-success').length > 0) {
+                $('#btnShowChangePassword').hide();
+                $('#changePasswordForm').show();
+            }
+        });
+    </script>
+}

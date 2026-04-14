@@ -1,0 +1,66 @@
+﻿<header class="header-row">
+
+    @* Khối 1: Logo (Giữ nguyên) *@
+    <a href="@Url.Action("Index", "Music")" class="logo-group">
+        <img src="~/Content/image/musiclogo.png" alt="MusicNow Logo" class="logo-img" />
+        <span class="logo-text">MusicNow</span>
+    </a>
+
+    @* Khối 2: Thanh Tìm kiếm (Bọc trong Form) *@
+    <div class="search-wrapper">
+        @* Bọc input trong một form GET, trỏ đến Search/Index *@
+        @using (Html.BeginForm("Index", "Search", FormMethod.Get, new { @class = "d-flex w-100" }))
+        {
+            <input type="text" id="search" name="query"
+                   class="form-control"
+                   style="height: 40px; border-radius: 50px; background-color: #3e3e3e; border-color: #535353; color: #e0e0e0;"
+                   placeholder="Tìm kiếm bài hát hoặc nghệ sĩ..."
+                   value="@ViewBag.SearchTerm" />
+
+        }
+    </div>
+    @* Khối 3: Nút Hành động (Giữ nguyên) *@
+    <div class="action-buttons">
+        @{
+                        bool isPremium = ViewBag.IsUserPremium ?? false;
+                        string premiumClass = isPremium ? "btn-premium btn-premium-vip" : "btn-premium";
+        }
+
+        <a href="#" class="btn @premiumClass">
+            @if (isPremium)
+            {
+                <span style="color: gold;">⭐</span>
+            }
+            else
+            {
+                <span>👑</span>
+            }
+            Premium
+        </a>
+
+        @if (User.Identity.IsAuthenticated)
+        {
+            <div class="dropdown">
+                <button class="btn btn-login dropdown-toggle" type="button" id="userMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                    👤 Tài khoản
+                </button>
+
+                <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end" aria-labelledby="userMenuButton">
+                    <li><a class="dropdown-item" href="@Url.Action("Profile", "Account")">Thông tin cá nhân</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <form id="logoutForm" action="@Url.Action("LogOff", "Account")" method="post" style="display: inline;">
+                            @Html.AntiForgeryToken()
+                            <a href="javascript:document.getElementById('logoutForm').submit()" class="dropdown-item"
+                               style="color: #dc3545;">Đăng xuất</a>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        }
+        else
+        {
+            <a href="@Url.Action("Login", "Account")" class="btn btn-login">👤 Đăng nhập</a>
+        }
+    </div>
+</header>
